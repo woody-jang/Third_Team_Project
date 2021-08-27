@@ -1,0 +1,54 @@
+package gui.chat;
+
+import java.awt.Dimension;
+import java.awt.Font;
+
+import javax.swing.BoxLayout;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import shared.User;
+
+// 목록에서 아이디 눌렸을때 뜨는 프로필창
+public class ProfileDialog extends JDialog{
+	private Font font25 = new Font("굴림", Font.PLAIN, 25);
+	
+	public ProfileDialog(User user) {
+		JPanel mainPnl = new JPanel();
+		mainPnl.setLayout(new BoxLayout(mainPnl, BoxLayout.Y_AXIS));
+		
+		JPanel photoPnl = new JPanel();
+		JLabel photoLbl = new JLabel("프사");
+		photoLbl.setPreferredSize(new Dimension(380, 380));
+		
+		photoPnl.add(photoLbl);
+		mainPnl.add(photoPnl);
+		
+		JPanel userNamePnl = new JPanel();
+		JLabel userNameLbl = new JLabel("꽥꽥이");
+		userNameLbl.setFont(font25);
+		userNamePnl.add(userNameLbl);
+		mainPnl.add(userNamePnl);
+		
+		JPanel userStatePnl = new JPanel();
+		JLabel userStateLbl = new JLabel("ㄴr는 ㄱr끔 눈물을 흘린ㄷr...");
+		userStateLbl.setFont(font25);
+		userStatePnl.add(userStateLbl);
+		mainPnl.add(userStatePnl);
+		
+		add(mainPnl);
+		
+		showGUI();
+	}
+
+	private void showGUI() {
+		setSize(400, 500);
+		setLocation(450, 400);
+		setVisible(true);
+	}
+	
+	public static void main(String[] args) {
+		new ProfileDialog(new User());
+	}
+}

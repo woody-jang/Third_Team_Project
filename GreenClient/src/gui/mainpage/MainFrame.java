@@ -5,13 +5,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+import javax.swing.*;
 
 import gui.chat.MainChatDialog;
 
@@ -39,7 +33,7 @@ public class MainFrame extends JFrame {
 		JPanel cardpnl = new JPanel(card);
 		JPanel mainpnl = new JPanel();
 		mainpnl.setLayout(new BoxLayout(mainpnl, BoxLayout.Y_AXIS));
-		Calendar calendar = new Calendar();
+		JPanel calendar = new Calendar();
 		Mypage mypage = new Mypage();
 		cardpnl.add(mainpnl, "메인");
 		cardpnl.add(calendar, "달력");

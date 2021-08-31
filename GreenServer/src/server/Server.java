@@ -39,7 +39,7 @@ public class Server {
 						user = new User();
 						try {
 							while ((o = ois.readObject()) != null) {
-								RequestRead requestRead = new RequestRead(o, oos);
+								RequestRead requestRead = new RequestRead(o, oos, ois);
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -57,6 +57,14 @@ public class Server {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static List<ChatRoom> getChatRoomList() {
+		return ChatRoomList;
+	}
+
+	public static void setChatRoomList(List<ChatRoom> chatRoomList) {
+		ChatRoomList = chatRoomList;
 	}
 
 	public static void addUserThread(Thread t) {

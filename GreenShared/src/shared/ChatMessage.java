@@ -13,6 +13,7 @@ public class ChatMessage implements Serializable {
 	private LocalTime time;
 	private String sendUser; //보내는 자
 	private String receiveUser; // 귓속말 대상 
+	private String subject; 
 	
 	public ChatMessage() {
 	}
@@ -37,6 +38,14 @@ public class ChatMessage implements Serializable {
 		this.time = time;
 		this.sendUser = sendUser;
 		this.receiveUser = receiveUser;
+	}
+	
+	public synchronized final String getSubject() {
+		return subject;
+	}
+	
+	public synchronized final void setSubject(String subject) {
+		this.subject = subject;
 	}
 	
 	public String getProtocol() {

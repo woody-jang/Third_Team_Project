@@ -1,11 +1,24 @@
 package client;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
 
 import shared.ChatMessage;
+import shared.ChatRoom;
+import shared.GreenProtocol;
 
+// client꺼
 public class Service {
-//-----------------------------------------------------------------------------------------
+	private ObjectOutputStream oos;
+	
+	public Service(ObjectOutputStream oos) {
+		this.oos = oos;
+	}
+
+	//-----------------------------------------------------------------------------------------
 	// 로그인 - 서윤
 	private void login() {
 		// LOGIN
@@ -98,13 +111,33 @@ public class Service {
 
 //-----------------------------------------------------------------------------------------
 	// 달력 - 세호
-	public static void chatLogList(String selectedDate) {
+	public void requestChatLogList(String selectedDate) {
+		try {
+			oos.writeObject(GreenProtocol.SELECT_CALENDAR);
+			oos.flush();
+			
+			oos.writeObject(selectedDate);
+			oos.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		// SELECT_CALENDAR
 		// 서버에 요청함
-		// 서버에 있는 getChatLog 호출
+	}
+	
+	public void getChatLogList(ObjectInputStream ois) {
+		try {
+			Client.setChatRoomList((List<ChatRoom>) ois.readObject());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
-	public static String showChatLog(int index) {
+	public String showChatLog(int index) {
 		return null;
 		// 스윙에서 요청하면 자신이 들고있는 List의 해당 index값을 바로 돌려줌
 	}

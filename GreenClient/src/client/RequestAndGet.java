@@ -1,16 +1,16 @@
 package client;
 
-import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 
 import shared.ChatMessage;
 import shared.ChatRoom;
 import shared.GreenProtocol;
 import shared.User;
 
+// client꺼
 public class RequestAndGet {
-	Service service = new Service();
 
-	public RequestAndGet(Object o, ObjectOutputStream oos) {
+	public RequestAndGet(Object o, ObjectInputStream ois, Service service) {
 		//여기에 넣을거 알아서 넣으세요
 		if(o instanceof User) {
 			User u = (User) o;
@@ -20,6 +20,9 @@ public class RequestAndGet {
 			ChatRoom cr = (ChatRoom) o;
 		} else if(o instanceof String) {
 			String str = (String) o;
+			if (str.equals(GreenProtocol.SELECT_CALENDAR_RESULT)) {
+				service.getChatLogList(ois);
+			}
 		}
 // -----------------------------------------------------------------------------------------
 		// 로그인 - 서윤

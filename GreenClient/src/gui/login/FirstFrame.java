@@ -4,7 +4,6 @@ import java.awt.CardLayout;
 import java.awt.Container;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 
 public class FirstFrame extends JFrame {
@@ -39,9 +38,6 @@ public class FirstFrame extends JFrame {
 //		setLocationRelativeTo(null);		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
-	}
-	public static void main(String[] args) {
-		new FirstFrame();
 	}
 
 }

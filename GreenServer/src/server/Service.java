@@ -1,11 +1,17 @@
 package server;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+
+import shared.ChatRoom;
+import shared.GreenProtocol;
 
 public class Service {
 	private DataBaseDAO dao;
 
-//-----------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------
 	// 로그인 - 서윤
 	public String loginResult() {
 		return null;
@@ -126,7 +132,22 @@ public class Service {
 
 //-----------------------------------------------------------------------------------------
 	// 달력 - 세호
-	public static void getChatLogList(String selectedDate) {
+	public void getChatLogList(ObjectOutputStream oos, ObjectInputStream ois) {
+		List<ChatRoom> chatRoomList = null;
+		try {
+			String selectedDate = (String) ois.readObject();
+			chatRoomList = dao.getChatLogList(selectedDate);
+			
+			oos.writeObject(GreenProtocol.SELECT_CALENDAR_RESULT);
+			oos.flush();
+			
+			oos.writeObject(chatRoomList);
+			oos.flush();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		// SELECT_CALENDAR_OK
 		// db 조회 요청함
 		// dao에 있는 getChatLogList 호출

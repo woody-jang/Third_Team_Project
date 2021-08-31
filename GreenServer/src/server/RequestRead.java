@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import shared.ChatMessage;
@@ -11,7 +12,7 @@ import shared.User;
 public class RequestRead {
 	Service service = new Service();
 
-	public RequestRead(Object o, ObjectOutputStream oos) throws IOException {
+	public RequestRead(Object o, ObjectOutputStream oos, ObjectInputStream ois) throws IOException {
 		//여기에 넣을거 알아서 넣으세요
 		if(o instanceof User) {
 			User u = (User) o;
@@ -21,6 +22,9 @@ public class RequestRead {
 			ChatRoom cr = (ChatRoom) o;
 		} else if(o instanceof String) {
 			String str = (String) o;
+			if(str.equals(GreenProtocol.SELECT_CALENDAR)) {
+				   service.getChatLogList(oos, ois);
+			} 
 		}
 //-----------------------------------------------------------------------------------------
 		// 로그인 - 서윤

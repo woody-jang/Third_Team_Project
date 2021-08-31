@@ -1,9 +1,15 @@
 package server;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import shared.ChatRoom;
+import shared.User;
 
 public class DataBaseDAO { // Data Access Object
 
@@ -75,9 +81,29 @@ public class DataBaseDAO { // Data Access Object
 //-----------------------------------------------------------------------------------------
 	// 달력 - 세호
 	public static List<ChatRoom> getChatLogList(String selectedDate) {
+		List<ChatRoom> chatRoomList = new ArrayList<ChatRoom>();
+		try (Connection conn = ConnectionProvider.getConnection();
+				PreparedStatement stmt = conn.prepareStatement("SELECT * FROM greenchat.chat WHERE chatDate = ?")){
+			stmt.setString(1, selectedDate);
+			
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				System.out.println(1);
+				String title = rs.getString("chatTitle");
+				int subjectCode = rs.getInt("subjectCode");
+				String chatLog = rs.getString("chatLog");
+				User user = new User();
+				user.setName("박민");
+				ChatRoom chatRoom = new ChatRoom(title, subjectCode, chatLog, user);
+				chatRoomList.add(chatRoom);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		// db에서 해당 날짜로 조회
 		// 결과를 List<ChatRoom>으로 반환
-		return null;
+		return chatRoomList;
 	}
 
 //-----------------------------------------------------------------------------------------

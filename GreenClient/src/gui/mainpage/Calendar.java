@@ -31,9 +31,13 @@ public class Calendar extends JPanel {
 		happnl.add(makeCalendar());
 
 		classpnl = new JPanel();
-		classpnl.setLayout(new BoxLayout(classpnl, BoxLayout.Y_AXIS));
 		JScrollPane scrl = new JScrollPane(classpnl);
+//		classpnl.setPreferredSize(new Dimension(270, 200));
+//		classpnl.setOpaque(true);
+		classpnl.setLayout(new BoxLayout(classpnl, BoxLayout.Y_AXIS));
 		createChatLogListPnl();
+		scrl.setPreferredSize(new Dimension(270, 250));
+		scrl.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		happnl.add(scrl);
 
@@ -49,10 +53,10 @@ public class Calendar extends JPanel {
 
 		for (ChatRoom chatRoom : chatRoomList) {
 			JPanel chatRoomPnl = new JPanel();
-			JLabel chatRoomLbl = new JLabel(chatRoom.getTitle() + " - " + chatRoom.getHost().getName());
-			chatRoomLbl.setPreferredSize(new Dimension(300, 40));
+			JLabel chatRoomLbl = new JLabel(chatRoom.getTitle());
+			chatRoomLbl.setPreferredSize(new Dimension(240, 30));
 			chatRoomLbl.setBorder(BorderFactory.createLineBorder(Color.black, 2));
-			chatRoomLbl.setFont(new Font(" 굴림", Font.PLAIN, 20));
+			chatRoomLbl.setFont(new Font(chatRoomLbl.getFont().getName(), Font.PLAIN, 15));
 			chatRoomLbl.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
@@ -175,9 +179,8 @@ public class Calendar extends JPanel {
 						sb.append((month > 9) ? month : "0" + month);
 						sb.append("-");
 						sb.append((day > 9) ? day : "0" + day);
-						System.out.println(sb);
 						classpnl.removeAll();
-						Client.service.requestChatLogList(sb.toString());
+						Client.service.requestChatLogList(sb.toString(), Client.user.getSubject());
 						try {
 							Thread.sleep(700);
 						} catch (InterruptedException e1) {

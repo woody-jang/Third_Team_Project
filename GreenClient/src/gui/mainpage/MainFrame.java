@@ -1,102 +1,166 @@
 package gui.mainpage;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.*;
 
+import client.Client;
 import gui.chat.MainChatDialog;
+import shared.ChatMessage;
+import shared.User;
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements ActionListener {
 
-	public MainFrame() {
+	private CardLayout card;
+	private Calendar calendar;
+	private Mypage mypage;
+	private JPanel cardpnl, mainpnl, midpnl;
+	public JButton btn1, btn2, btn3, btnRepaint, btnLogOut, btnCreate;
+	private User user;
+	private MainChatDialog mcd;
+	public Map<Integer, MainChatDialog> mcdMap;
+
+	public MainFrame(User user) {
+		this.user = user;
+		if (user.isTeacher())
+			mcdMap = new HashMap<Integer, MainChatDialog>();
 
 		JPanel btnspnl = new JPanel();
-		JButton btn1 = new JButton("대화");
-		JButton btn2 = new JButton("달력");
-		JButton btn3 = new JButton("마이");
-		JButton btn4 = new JButton("아웃");
-		JButton btn5 = new JButton("새로");
+		btn1 = new JButton("대화");
+		btn2 = new JButton("달력");
+		btn3 = new JButton("마이");
+		btnRepaint = new JButton(" 새로고침 ");
+		btnLogOut = new JButton(" 로그아웃 ");
 
 		btnspnl.add(btn1);
 		btnspnl.add(btn2);
 		btnspnl.add(btn3);
-		btnspnl.add(btn4);
-		btnspnl.add(btn5);
+		btnspnl.add(btnRepaint);
+		btnspnl.add(btnLogOut);
 		add(btnspnl, "West");
 		btnspnl.setBackground(Color.GRAY);
 		btnspnl.setLayout(new BoxLayout(btnspnl, BoxLayout.Y_AXIS));
-
-		CardLayout card = new CardLayout();
-		JPanel cardpnl = new JPanel(card);
-		JPanel mainpnl = new JPanel();
-		mainpnl.setLayout(new BoxLayout(mainpnl, BoxLayout.Y_AXIS));
-		JPanel calendar = new Calendar();
-		Mypage mypage = new Mypage();
+		card = new CardLayout();
+		cardpnl = new JPanel(card);
+		mainpnl = new JPanel();
+		mainpnl.setLayout(new BorderLayout());
+		calendar = new Calendar();
+		mypage = new Mypage(user);
 		cardpnl.add(mainpnl, "메인");
 		cardpnl.add(calendar, "달력");
 		cardpnl.add(mypage, "마이페이지");
 
-		btn1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				card.show(cardpnl, "메인");
-			}
-		});
-
-		btn2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				card.show(cardpnl, "달력");
-			}
-		});
-
-		btn3.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				card.show(cardpnl, "마이페이지");
-			}
-		});
-
 		JPanel toppnl = new JPanel();
 		JLabel lbl = new JLabel("대화");
-		JButton create = new JButton("채팅방만들기");
+		btnCreate = new JButton("채팅방만들기");
 		toppnl.add(lbl);
-		toppnl.add(create);
-		
-		mainpnl.add(toppnl);
+		toppnl.add(btnCreate);
 
-		JPanel midpnl = new JPanel();
-		midpnl.setLayout(new BoxLayout(midpnl, BoxLayout.Y_AXIS));
-		JPanel pnllbl = new JPanel();
-		JButton btnjava = new JButton("2021-09-10  자바");
-		btnjava.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new MainChatDialog("hello");
-			}
-		});
-		pnllbl.add(btnjava);
-		midpnl.add(pnllbl);
+		mainpnl.add(toppnl, "North");
+
+		midpnl = new JPanel();
+		midpnl.setLayout(new GridLayout(0, 1));
 
 		mainpnl.add(midpnl);
 
 		add(cardpnl);
 
+		btn1.addActionListener(this);
+		btn2.addActionListener(this);
+		btn3.addActionListener(this);
+		btnRepaint.addActionListener(this);
+		btnLogOut.addActionListener(this);
+		btnCreate.addActionListener(this);
+
+		btnCreate.setEnabled(user.isTeacher());
+
 		showGUI();
+
+		addWindowListener(new WindowAdapter() {
+			@Override // 9/6수정
+			public void windowClosing(WindowEvent e) {
+				int result = JOptionPane.showConfirmDialog(MainFrame.this, "정말로 종료 하시겠습니까?", "",
+						JOptionPane.YES_NO_OPTION);
+				if (result == JOptionPane.YES_OPTION) {
+					Client.service.ExitGUI();
+					System.exit(0);
+				}
+			}
+		});
 	}
 
 	private void showGUI() {
 		setSize(400, 500);
-//	  pack(); 
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		btnRepaint.doClick();
 	}
 
-	public static void main(String[] args) {
-		new MainFrame();
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == btn1) {
+			card.show(cardpnl, "메인");
+		} else if (e.getSource() == btn2) {
+			card.show(cardpnl, "달력");
+		} else if (e.getSource() == btn3) {
+			card.show(cardpnl, "마이페이지");
+		} else if (e.getSource() == btnRepaint) { // 새로 고침
+			Client.service.requestBtnRefresh(); // 채팅방버튼 새로고침
+		} else if (e.getSource() == btnLogOut) { // 로그아웃
+			Client.service.logOut();
+		} else if (e.getSource() == btnCreate) {
+			Client.service.makeChat();
+		}
+	}
+
+	public JPanel getMidpnl() {
+		return midpnl;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void passMCDannounce(String announce) {
+		mcd.announce(announce);
+	}
+
+	public void passMCDmymessage(ChatMessage message) {
+		mcd.myMessage(message);
+	}
+
+	public void passMCDothermessage(ChatMessage message) {
+		mcd.otherMessage(message);
+	}
+
+	public void passMCDmyFile(ChatMessage cm) {
+		mcd.myFile(cm);
+	}
+
+	public void passMCDmyPicture(ChatMessage cm) {
+		mcd.myPicture(cm);
+
+	}
+
+	public MainChatDialog getMcd() {
+		return mcd;
+	}
+
+	public void setMcd(MainChatDialog mcd) {
+		this.mcd = mcd;
+	}
+
+	public Mypage getMypage() {
+		return mypage;
 	}
 
 }

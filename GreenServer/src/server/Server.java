@@ -18,28 +18,27 @@ public class Server {
 
 	private static List<Thread> UserThread = new ArrayList<>(); // 유저리스트
 	private static List<ChatRoom> ChatRoomList = new LinkedList<>(); // 채팅방 리스트
-
+	private static List<ObjectOutputStream> oosList = new ArrayList<>(); // 채팅방 리스트
+	private static List<User> currentUserList = new ArrayList<>(); // 현재 접속하고 있는 사람들
 	private static Object UserLock = new Object();
 
 	public static void main(String[] args) {
 		try (ServerSocket server = new ServerSocket(GreenProtocol.PORT)) {
 			while (true) {
-				System.out.println("기다리는 중");
+				System.out.println("기다리는중");
 				Socket client = server.accept();
 				ObjectOutputStream oos = new ObjectOutputStream(client.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
 
 				Thread t = new Thread(new Runnable() {
-					public User user;
-
-					Object o = null;
+					public RequestRead rr = new RequestRead(oos, ois);
 
 					@Override
 					public void run() {
-						user = new User();
+						Object o = null;
 						try {
 							while ((o = ois.readObject()) != null) {
-								RequestRead requestRead = new RequestRead(o, oos, ois);
+								rr.readObject(o);
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -48,14 +47,40 @@ public class Server {
 						}
 					}
 				});
-
+				oosList.add(oos);
 				addUserThread(t);
 
 				t.start();
-
 			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public static void addUserThread(Thread t) {
+		synchronized (UserLock) {
+			getUserThread().add(t);
+		}
+	}
+
+	public static void removeUserThread(Thread t) {
+		synchronized (UserLock) {
+			getUserThread().remove(t);
+		}
+	}
+
+	// 현재 로그인 중인 사람 추가
+	public static void addUserList(User user) {
+		synchronized (UserLock) {
+			getCurrentUserList().add(user);
+		}
+	}
+
+	// 현재 로그인 중인 사람이 로그아웃 했을때 아웃
+	public static void removeUserList(User user) {
+		synchronized (UserLock) {
+			getCurrentUserList().remove(user);
 		}
 	}
 
@@ -67,16 +92,24 @@ public class Server {
 		ChatRoomList = chatRoomList;
 	}
 
-	public static void addUserThread(Thread t) {
-		synchronized (UserLock) {
-			UserThread.add(t);
-		}
+	public static List<Thread> getUserThread() {
+		return UserThread;
 	}
 
-	public static void removeUserThread(Thread t) {
-		synchronized (UserLock) {
-			UserThread.remove(t);
-		}
+	public static void setUserThread(List<Thread> userThread) {
+		UserThread = userThread;
+	}
+
+	public static List<ObjectOutputStream> getOosList() {
+		return oosList;
+	}
+
+	public static List<User> getCurrentUserList() {
+		return currentUserList;
+	}
+
+	public static void setCurrentUserList(List<User> currentUserList) {
+		Server.currentUserList = currentUserList;
 	}
 
 }

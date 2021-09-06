@@ -22,7 +22,6 @@ public class ChatRoom implements Serializable{
 		this.subjectCode = subjectCode;
 		this.chatLog = chatLog;
 		this.host = host;
-		map = new HashMap<>();
 	}
 	
 	public String getProtocol() {
@@ -51,6 +50,10 @@ public class ChatRoom implements Serializable{
 
 	public Map<User, ObjectOutputStream> getMap() {
 		return map;
+	}
+	
+	public void putMap(User user,ObjectOutputStream oos) {
+		map.put(user, oos);
 	}
 
 	public void setMap(Map<User, ObjectOutputStream> map) {

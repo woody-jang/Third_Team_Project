@@ -10,86 +10,121 @@ import shared.GreenProtocol;
 import shared.User;
 
 public class RequestRead {
-	Service service = new Service();
+	Service service;
+	ObjectOutputStream oos;
+	ObjectInputStream ois;
 
-	public RequestRead(Object o, ObjectOutputStream oos, ObjectInputStream ois) throws IOException {
-		//여기에 넣을거 알아서 넣으세요
-		if(o instanceof User) {
+	public RequestRead(ObjectOutputStream oos, ObjectInputStream ois) {
+		// 여기에 넣을거 알아서 넣으세요
+		this.oos = oos;
+		this.ois = ois;
+		service = new Service(oos);
+	}
+
+	public void readObject(Object o) throws IOException {
+		if (o instanceof User) {
 			User u = (User) o;
-		} else if(o instanceof ChatMessage) {
+			if (u.getProtocol().equals(GreenProtocol.CHAT_JOIN)) {
+				service.chatJoin(u, oos);
+				service.allUserUpdateUserList(u);
+			} else if (u.getProtocol().equals(GreenProtocol.LOGOUT)) {
+				service.logOut(u);
+			} // 서윤
+			else if (u.getProtocol().equals(GreenProtocol.LOGIN)) { // 유저클래스안에 있는 프로토콜이 로그인이면(if)
+				service.confirmLogin(u);
+			} else if (u.getProtocol().equals(GreenProtocol.JOIN)) {
+				service.confirmJoin(u);
+			} else if (u.getProtocol().equals(GreenProtocol.JOIN_TEACHER)) {
+				service.confirmJoinTeacher(u);
+			} else if (u.getProtocol().equals(GreenProtocol.DELETE_TEACHER)) {
+				service.executeDeleteTeacher(u);
+			} else if (u.getProtocol().equals(GreenProtocol.FIND_ID)) {
+				service.findId(u);
+			} else if (u.getProtocol().equals(GreenProtocol.FIND_PW)) {
+				service.findPw(u);
+			} else if (u.getProtocol().equals(GreenProtocol.CHAT_JOIN)) {
+				service.chatJoin(u, oos);
+			} else if (u.getProtocol().equals(GreenProtocol.LOGOUT)) {
+				service.logOut(u);
+			} else if (u.getProtocol().equals(GreenProtocol.GET_OUT_USER)) {
+				System.out.println("1." + u.getSubject());
+				System.out.println(u.getName());
+				int result = service.getOutUserOk(u);
+				System.out.println("2." + u.getSubject());
+				System.out.println(u.getName());
+				service.allUserUpdateUserList(u);
+				System.out.println("3." + u.getSubject());
+				System.out.println(u.getName());
+
+				if (result == 1) {
+					service.getoutUserResult(u);
+				}
+
+			} else if (u.getProtocol().equals(GreenProtocol.EXIT_GUI)) {
+				service.ExitGUI(u);
+			}
+
+			// 민석
+			else if (u.getProtocol().equals(GreenProtocol.CHANGE_PROFILE_WITH_PHOTO)) {
+				service.changeUserInforWithPhoto(u, ois);
+			}
+			// 사진 변경 없이 프로필 체인지
+			else if (u.getProtocol().equals(GreenProtocol.CHANGE_PROFILE)) {
+				service.changeUserInforNoPhoto(u);
+			} else if (u.getProtocol().equals(GreenProtocol.REPAINT_MYPROFILE)) {
+				service.getMyProfile(u);
+			}
+			// -----------------------------------------------------------------------------------------
+		} else if (o instanceof ChatMessage) {
 			ChatMessage cm = (ChatMessage) o;
-		} else if(o instanceof ChatRoom) {
+			// 석현
+			if (cm.getProtocol().equals(GreenProtocol.HOST_CHAT_ALL)) {
+				service.updatechatlog(cm);// DB에 로그업데이트
+				service.allUserSendMessage(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.HOST_CHAT_ONE)) {
+				service.oneUserSendMessage(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.CHAT_ALL)) {
+				service.updatechatlog(cm);// DB에 로그업데이트
+				service.allUserSendMessage(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.CHAT_ONE)) {
+				service.oneUserSendMessage(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.INPUT_FILE)) {
+				service.outputFile(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.INPUT_PICTURE)) {
+				service.outputFile(cm);
+			} else if (cm.getProtocol().equals(GreenProtocol.Emoticon)) {
+				service.allUserSendMessage(cm);
+			}
+			// -----------------------------------------------------------------------------------------
+		} else if (o instanceof ChatRoom) {
 			ChatRoom cr = (ChatRoom) o;
-		} else if(o instanceof String) {
+			if (cr.getProtocol().equals(GreenProtocol.MAKE_CHAT)) {
+				service.createRoom(cr);
+			}
+			// -----------------------------------------------------------------------------------------
+		} else if (o instanceof String) {
 			String str = (String) o;
-			if(str.equals(GreenProtocol.SELECT_CALENDAR)) {
-				   service.getChatLogList(oos, ois);
-			} 
-		}
-//-----------------------------------------------------------------------------------------
-		// 로그인 - 서윤
-		if (o.equals(GreenProtocol.LOGIN)) {
-			
-		} else if (o.equals(GreenProtocol.JOIN)) {
-
-		} else if (o.equals(GreenProtocol.FIND_ID)) {
-
-		} else if (o.equals(GreenProtocol.FIND_PW)) {
-
-		}
-//-----------------------------------------------------------------------------------------
-		// 채팅방 만들기 - 형수
-		else if (o.equals(GreenProtocol.MAKE_CHAT)) {
-			
-		} else if (o.equals(GreenProtocol.REPAINT)) {
-
-		} else if (o.equals(GreenProtocol.LOGOUT)) {
-
-		} else if (o.equals(GreenProtocol.CHAT_JOIN)) {
-
-		}
-//-----------------------------------------------------------------------------------------
-		// 채팅방 - 석현
-		else if (o.equals(GreenProtocol.HOST_CHAT_ALL)) {
-
-		} else if (o.equals(GreenProtocol.HOST_CHAT_ONE)) {
-
-		} else if (o.equals(GreenProtocol.CHAT_ALL)) {
-
-		} else if (o.equals(GreenProtocol.CHAT_ONE)) {
-
-		}
-		// 영균
-		else if(o.equals(GreenProtocol.INPUT_FILE)) {
-			   
-		} else if(o.equals(GreenProtocol.USER_LIST)) {
-		   
-		} else if(o.equals(GreenProtocol.CHANGE_TITLE)) {
-		   
-		} else if(o.equals(GreenProtocol.GET_OUT_USER)) {
-		   
-		} 
-		// 민주
-		else if(o.equals(GreenProtocol.CHANGE_HOST)) {
-		   
-		} else if(o.equals(GreenProtocol.EXIT_CHAT)) {
-		   
-		} else if(o.equals(GreenProtocol.HOST_EXIT_CHAT)) {
-		   
-		} 
-//-----------------------------------------------------------------------------------------
-		// 달력 - 세호
-		else if(o.equals(GreenProtocol.SELECT_CALENDAR)) {
-		   
-		} 
-//-----------------------------------------------------------------------------------------
-		// 마이페이지 - 민석
-		else if(o.equals(GreenProtocol.SHOW_PROFILE)) {
-		   
-		} else if(o.equals(GreenProtocol.CHANGE_PROFILE)) {
-		   
-		} else if(o.equals(GreenProtocol.EXIT_GUI)) {
-			
+			if (str.equals(GreenProtocol.MAKE_CHAT)) {
+				service.makeChatList();
+//			} else if (str.equals(GreenProtocol.REPAINT)) {
+//				service.refresh2();
+			} else if (str.equals(GreenProtocol.CHANGE_TITLE)) {
+				service.changeTitleResult(ois);
+			} else if (str.equals(GreenProtocol.FIND_CHATROOM_USER)) {
+				service.findChatRoomUser(ois);
+			} else if (str.equals(GreenProtocol.CHANGE_HOST)) {
+				service.changeHostOk(ois);
+			} else if (str.equals(GreenProtocol.EXIT_CHAT)) {
+				service.exitChatOk(ois);
+			} else if (str.equals(GreenProtocol.HOST_EXIT_CHAT)) {
+				service.hostExitChatOk(ois);
+			} else if (str.equals(GreenProtocol.SELECT_CALENDAR)) { // 세호
+				service.getChatLogList(oos, ois);
+			} else if (str.equals(GreenProtocol.REFRESH_CHATLIST)) {
+				service.makeChatListRefresh();
+			} else if (str.equals(GreenProtocol.REPAINT_TEACHER_LIST)) {
+				service.repaintTeacherList();
+			}
 		}
 	}
 }

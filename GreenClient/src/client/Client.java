@@ -5,39 +5,54 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import gui.admin.AddTeacher;
+import gui.admin.AdminFrame;
 import gui.login.FirstFrame;
+import gui.mainpage.MainFrame;
 import shared.ChatRoom;
 import shared.GreenProtocol;
+import shared.User;
 
 public class Client {
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
-	private static FirstFrame ff;
+	public static FirstFrame ff;
+	public static MainFrame mf;
+	public static AdminFrame af;
+	public static AddTeacher at;
 	public static Service service;
+	public static boolean changeTitle = false;
+	public static List<User> userList = null;
+	public static User user = null;
 	private static List<ChatRoom> chatRoomList;
+	private static RequestAndGet rag;
+	public static List<User> TeacherList = new ArrayList<>();
 
 	public static void main(String[] args) {
-		try (Socket socket = new Socket("127.0.0.1", GreenProtocol.PORT);) {
+
+		try (Socket socket = new Socket("192.168.191.155", GreenProtocol.PORT);) {
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
+			service = new Service(oos);
+			rag = new RequestAndGet(ois,service);
 			// 스윙
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					ff = new FirstFrame();
+					ff = new FirstFrame(oos);
 				}
 			});
 			
-			service = new Service(oos);
-
+			
 			// 서버가 쏴주는 걸 밑으로 받는다.
 			Object o = null;
 			while ((o = ois.readObject()) != null) {
-				RequestAndGet rag = new RequestAndGet(o, ois, service);
+				rag.readObject(o);
 			}
 
 		} catch (UnknownHostException e) {
@@ -63,6 +78,15 @@ public class Client {
 			}
 		}
 	}
+
+	public static FirstFrame getff() {
+		return ff;
+	}
+
+	public static void setff(FirstFrame ff) {
+		Client.ff = ff;
+	}
+
 	public static List<ChatRoom> getChatRoomList() {
 		return chatRoomList;
 	}
@@ -71,4 +95,17 @@ public class Client {
 		Client.chatRoomList = chatRoomList;
 	}
 	
+	public static String getSubjectString(int subject) { //과목 int -> String
+		switch (subject) {
+		case 10:
+			return "JAVA";
+		case 20:
+			return "Python";
+		case 30:
+			return "C언어";
+		default:
+			return "";
+		}
+	}
+
 }

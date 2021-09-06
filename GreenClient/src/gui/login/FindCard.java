@@ -9,20 +9,14 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.text.ParseException;
 
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 
+import client.Client;
 import shared.GreenProtocol;
-import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
+import shared.User;
 
-public class FindCard extends JPanel implements ItemListener ,ActionListener{
+public class FindCard extends JPanel implements ItemListener, ActionListener {
 	private CardLayout cardLayout;
 	private String protocol;
 	private JTextField tfName, tfBirth, tfID;
@@ -36,13 +30,13 @@ public class FindCard extends JPanel implements ItemListener ,ActionListener{
 
 		JPanel pnlAll = new JPanel();
 		pnlAll.setLayout(new BoxLayout(pnlAll, BoxLayout.Y_AXIS));
-		
+
 		JPanel pnlTitle = new JPanel();
 		JLabel lblTitle = new JLabel("ID/PW 찾기");
 		lblTitle.setFont(new Font("굴림", Font.BOLD, 20));
 		lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		pnlTitle.add(lblTitle);
-		
+
 		JPanel pnlRdBtn = new JPanel();
 		findID = new JRadioButton("ID 찾기");
 		findID.setHorizontalAlignment(SwingConstants.CENTER);
@@ -65,7 +59,7 @@ public class FindCard extends JPanel implements ItemListener ,ActionListener{
 		tfBirth = new JTextField(10);
 		pnlBirth.add(lblBirth);
 		pnlBirth.add(tfBirth);
-		
+
 		JPanel pnlPhone = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JLabel lblPhone = new JLabel("전화번호");
 		MaskFormatter formatterPhone = null;
@@ -89,13 +83,41 @@ public class FindCard extends JPanel implements ItemListener ,ActionListener{
 		findID.addItemListener(this);
 		findPW.addItemListener(this);
 		findID.setSelected(true);
-		
+
 		JPanel pnlBtn = new JPanel();
 		btnFind = new JButton("찾기");
+		btnFind.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (findID.isSelected()) {// 라디오버튼 선택되어있다면
+					if (e.getSource() == btnFind) {
+						User user = new User();
+						user.setProtocol(GreenProtocol.FIND_ID);
+						user.setName(tfName.getText());
+						user.setBirth(tfBirth.getText());
+						user.setPhone(tfPhone.getText());
+
+						Client.service.findId(user);
+					}
+				} else if (findPW.isSelected()) {
+					if (e.getSource() == btnFind) {
+						User user = new User();
+						user.setProtocol(GreenProtocol.FIND_PW);
+						user.setName(tfName.getText());
+						user.setBirth(tfBirth.getText());
+						user.setPhone(tfPhone.getText());
+						user.setId(Integer.parseInt(tfID.getText()));
+
+						Client.service.findPw(user);
+					}
+				}
+			}
+		});
 		btnBack = new JButton("뒤로 가기");
 		pnlBtn.add(btnFind);
 		pnlBtn.add(btnBack);
-		
+
 		pnlAll.add(pnlTitle);
 		pnlAll.add(pnlRdBtn);
 		pnlAll.add(pnlName);
@@ -103,9 +125,9 @@ public class FindCard extends JPanel implements ItemListener ,ActionListener{
 		pnlAll.add(pnlPhone);
 		pnlAll.add(pnlID);
 		pnlAll.add(pnlBtn);
-		
+
 		add(pnlAll);
-		
+
 		btnFind.addActionListener(this);
 		btnBack.addActionListener(this);
 	}
@@ -115,20 +137,20 @@ public class FindCard extends JPanel implements ItemListener ,ActionListener{
 		if (findID.isSelected()) {
 			tfID.setText("");
 			tfID.setEditable(false);
-			protocol=GreenProtocol.FIND_ID;
+			protocol = GreenProtocol.FIND_ID;
 		} else {
 			tfID.setEditable(true);
-			protocol=GreenProtocol.FIND_PW;
+			protocol = GreenProtocol.FIND_PW;
 		}
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource()==btnFind) {
+		if (e.getSource() == btnFind) {
 			// TODO 액션리스너로 아이디 찾기 구현해야함
-			
+
 		}
-		if (e.getSource()==btnBack) {
+		if (e.getSource() == btnBack) {
 			cardLayout.show(getParent(), "login");
 			reset();
 		}

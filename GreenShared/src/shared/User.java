@@ -1,12 +1,17 @@
 package shared;
 
-import java.io.File;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
-import java.sql.Blob;
 import java.util.Objects;
 
+import javax.imageio.ImageIO;
+
 public class User implements Serializable {
-	private static final long serialVersionUID = 1L;
+	
+	private static final long serialVersionUID = -6922476422704096294L;
 	
 	private String Protocol;
 	private int id;
@@ -14,15 +19,15 @@ public class User implements Serializable {
 	private String name;
 	private String birth;
 	private String phone;
-	private String subject;
+	private int subject;
 	private String myMessage;
-	private Blob photo;
+	private byte[] photo;
 	private boolean isTeacher;
-	
+
 	public User() {
 	}
-	
-	public User(int id, String password, String name, String birth, String phone, String subject) {
+
+	public User(int id, String password, String name, String birth, String phone, int subject) {
 		this.id = id;
 		this.password = password;
 		this.name = name;
@@ -30,64 +35,109 @@ public class User implements Serializable {
 		this.phone = phone;
 		this.subject = subject;
 		this.isTeacher = false;
+		this.photo = null;
 	}
+
+
 	public String getProtocol() {
 		return Protocol;
 	}
+
 	public void setProtocol(String protocol) {
 		Protocol = protocol;
 	}
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 	public String getPassword() {
 		return password;
 	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getBirth() {
 		return birth;
 	}
+
 	public void setBirth(String birth) {
 		this.birth = birth;
 	}
+
 	public String getPhone() {
 		return phone;
 	}
+
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	public String getSubject() {
+
+	public int getSubject() {
 		return subject;
 	}
-	public void setSubject(String subject) {
+
+	public void setSubject(int subject) {
 		this.subject = subject;
 	}
-	public Blob getPhoto() {
+
+	public byte[] getPhotoAtByte() {
+//		byte[] imageInByte = null;
+//		BufferedImage image = null;
+//		try {
+//			image = ImageIO.read(new ByteArrayInputStream(photo));
+//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//			ImageIO.write(image, "jpg", baos);
+//			baos.flush();
+//			 
+//			imageInByte = baos.toByteArray();
+//			return imageInByte;
+//		} catch (IOException e) {
+//		}
+//		return imageInByte;
 		return photo;
 	}
-	public void setPhoto(Blob photo) {
+	
+	public Image getPhoto() {
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(new ByteArrayInputStream(photo));
+			return image;
+		} catch (IOException e) {
+		}
+		return image;
+	}
+
+	public void setPhoto(byte[] photo) {
 		this.photo = photo;
 	}
+
 	public String getMyMessage() {
 		return myMessage;
 	}
+
 	public void setMyMessage(String myMessage) {
 		this.myMessage = myMessage;
 	}
+
 	public boolean isTeacher() {
 		return isTeacher;
 	}
+
 	public void setTeacher(boolean isTeacher) {
 		this.isTeacher = isTeacher;
 	}
@@ -103,6 +153,7 @@ public class User implements Serializable {
 	public int hashCode() {
 		return Objects.hash(id);
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -112,5 +163,4 @@ public class User implements Serializable {
 		User other = (User) obj;
 		return id == other.id;
 	}
-	
 }

@@ -1,8 +1,6 @@
 package server;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,15 +15,33 @@ import shared.User;
 
 public class DataBaseDAO { // Data Access Object
 	private int id;
+	private Connection conn;
+
+	public DataBaseDAO() {
+		try {
+			conn = ConnectionProvider.getConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void closeConn() {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 //-----------------------------------------------------------------------------------------
 	// 로그인 - 서윤
-	public static User searchLogin(User user) {
+	public User searchLogin(User user) {
 		// 로그인 DB조회 (아이디.비번 불러오기)
 		User okuser = new User();
 		String query = "SELECT * FROM user WHERE id = ? AND pw = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setInt(1, user.getId());
 			stmt.setString(2, user.getPassword());
 
@@ -74,9 +90,7 @@ public class DataBaseDAO { // Data Access Object
 	public List<User> searchTeacher() {
 		List<User> list = new ArrayList<>();
 		String query = "SELECT id, name, subjectCode from user WHERE isTeacher = 1";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);
-				ResultSet rs = stmt.executeQuery()) {
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			while (rs.next()) {
 				User user = new User();
 				int id = rs.getInt("id");
@@ -97,8 +111,7 @@ public class DataBaseDAO { // Data Access Object
 
 	public int deleteTeacher(User user) {
 		String query = "DELETE FROM user WHERE id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query)) {
+		try (PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, user.getId());
 
 			int result = stmt.executeUpdate();
@@ -114,8 +127,7 @@ public class DataBaseDAO { // Data Access Object
 		ResultSet rs = null;
 		String query = "SELECT id FROM user WHERE name = ? AND birth = ? AND phone = ?";
 
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, name);
 			stmt.setString(2, birth);
 			stmt.setString(3, phone);
@@ -135,8 +147,7 @@ public class DataBaseDAO { // Data Access Object
 		// Pw찾기 DB조회 (이름,생년월일,전화번호,ID 불러오기)
 		ResultSet rs = null;
 		String query = "SELECT pw FROM user WHERE name = ? AND birth = ? AND phone = ? AND id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, name);
 			stmt.setString(2, birth);
 			stmt.setString(3, phone);
@@ -157,8 +168,7 @@ public class DataBaseDAO { // Data Access Object
 		// 학생 아이디 형식 년도(21) + 과목(10,20,30) + 세자리수 번호(001)
 		// 2110001 -> 21(String) +( 10(과목코드)*1000 + su(001))
 		String query = "SELECT count(*) AS su FROM user WHERE subjectcode = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setInt(1, subjectCode);
 
 			ResultSet result = stmt.executeQuery();// 쿼리 실행하면 행단위로 불러와서 저장
@@ -174,15 +184,14 @@ public class DataBaseDAO { // Data Access Object
 		}
 
 		String query2 = "INSERT INTO user (id, pw, name, birth, phone, subjectCode, photo) VALUES (?, ?, ?, ?, ?, ?, ?)";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query2);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query2);) {
 			stmt.setInt(1, id);
 			stmt.setString(2, pw);
 			stmt.setString(3, name);
 			stmt.setString(4, birth);
 			stmt.setString(5, phone);
 			stmt.setInt(6, subjectCode);
-			stmt.setBlob(7, new FileInputStream(".\\기본프로필.jpg"));
+			stmt.setBlob(7, new FileInputStream("./profile/기본프로필.jpg"));
 			int result = -1;
 			result = stmt.executeUpdate();
 			if (result == 1) {
@@ -199,9 +208,7 @@ public class DataBaseDAO { // Data Access Object
 		// 아이디 앞에 11 + 00 + 사람 수
 		int id = 0;
 		String query = "SELECT count(*) AS su FROM user WHERE subjectcode = 0";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);
-				ResultSet rs = stmt.executeQuery()) {
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			rs.next();
 			int count = rs.getInt("su");
 			id = Integer.valueOf(("1") + (100000 + count));
@@ -209,8 +216,7 @@ public class DataBaseDAO { // Data Access Object
 			e.printStackTrace();
 		}
 		String query2 = "INSERT INTO user (id, isTeacher, pw, name, birth, phone, subjectCode, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query2)) {
+		try (PreparedStatement stmt = conn.prepareStatement(query2)) {
 			stmt.setInt(1, id);
 			stmt.setBoolean(2, true);
 			stmt.setString(3, user.getPassword());
@@ -218,7 +224,7 @@ public class DataBaseDAO { // Data Access Object
 			stmt.setString(5, user.getBirth());
 			stmt.setString(6, user.getPhone());
 			stmt.setInt(7, Integer.valueOf(user.getSubject()));
-			stmt.setBlob(8, new FileInputStream(".\\기본프로필.jpg"));
+			stmt.setBlob(8, new FileInputStream("./profile/기본프로필.jpg"));
 
 			int result = -1;
 			stmt.executeUpdate();
@@ -237,8 +243,7 @@ public class DataBaseDAO { // Data Access Object
 		int subjectcode = cr.getSubjectCode();
 		String chatDate = LocalDate.now().toString();
 		String chatTitle = cr.getTitle();
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query)) {
+		try (PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, subjectcode);
 			stmt.setString(2, chatDate);
 			stmt.setString(3, chatTitle);
@@ -273,8 +278,7 @@ public class DataBaseDAO { // Data Access Object
 	public int ChangeTitle(String title, int subjectCode) {// 데이터베이스 조작
 		// DB의 채팅타이틀 변경
 		String query = "update greenchat.chat set chatTitle = ?" + "where isrunning = 1 and subjectCode = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, title);
 			stmt.setInt(2, subjectCode);
 
@@ -287,8 +291,7 @@ public class DataBaseDAO { // Data Access Object
 
 	public int removeChatRoom(int subjectCode) { // isrunning = 0
 		String query = "UPDATE greenchat.chat SET isrunning = false WHERE subjectCode = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setInt(1, subjectCode);
 
 			return stmt.executeUpdate(); // 실행
@@ -300,28 +303,44 @@ public class DataBaseDAO { // Data Access Object
 
 //-----------------------------------------------------------------------------------------
 	// 달력 - 세호
-	public static List<ChatRoom> getChatLogList(String selectedDate, int receiveSubjectCode) {
+	public List<ChatRoom> getChatLogList(String selectedDate, int receiveSubjectCode) {
 		// db에서 해당 날짜로 채팅로그 조회
 		List<ChatRoom> chatRoomList = new ArrayList<ChatRoom>();
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement("SELECT * FROM greenchat.chat WHERE chatDate = ? and subjectCode = ?")) {
-			stmt.setString(1, selectedDate);
-			if (receiveSubjectCode == 0) {
-				stmt.setString(2, "10 or 20 or 30");
-			} else {
+		if (receiveSubjectCode == 0) {
+			try (PreparedStatement stmt = conn
+					.prepareStatement("SELECT * FROM greenchat.chat WHERE chatDate = ? and isrunning = ?")) {
+				stmt.setString(1, selectedDate);
+				stmt.setBoolean(2, false);
+
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					String title = rs.getString("chatTitle");
+					int subjectCode = rs.getInt("subjectCode");
+					String chatLog = rs.getString("chatLog");
+					ChatRoom chatRoom = new ChatRoom(title, subjectCode, chatLog, new User());
+					chatRoomList.add(chatRoom);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try (PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM greenchat.chat WHERE chatDate = ? and subjectCode = ? and isrunning = ?")) {
+				stmt.setString(1, selectedDate);
 				stmt.setInt(2, receiveSubjectCode);
+				stmt.setBoolean(3, false);
+
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					String title = rs.getString("chatTitle");
+					int subjectCode = rs.getInt("subjectCode");
+					String chatLog = rs.getString("chatLog");
+					ChatRoom chatRoom = new ChatRoom(title, subjectCode, chatLog, new User());
+					chatRoomList.add(chatRoom);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				String title = rs.getString("chatTitle");
-				int subjectCode = rs.getInt("subjectCode");
-				String chatLog = rs.getString("chatLog");
-				ChatRoom chatRoom = new ChatRoom(title, subjectCode, chatLog, new User());
-				chatRoomList.add(chatRoom);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		// 결과를 List<ChatRoom>으로 반환
 		return chatRoomList;
@@ -334,16 +353,28 @@ public class DataBaseDAO { // Data Access Object
 		String query = "SELECT name, photo, myMessage from user where id = ?";
 	}
 
-	public int updateProfile(User u, File profile) throws FileNotFoundException {
+	public int updateProfileWithPhoto(User u) throws FileNotFoundException {
 		// 마이프로필 수정누르고 확인 눌렀을 때 업데이트시키기
 		String query = "UPDATE user SET pw = ?, name = ?, myMessage = ?, phone = ?, photo = ? where id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, u.getPassword());
 			stmt.setString(2, u.getName());
 			stmt.setString(3, u.getMyMessage());
 			stmt.setString(4, u.getPhone());
-			stmt.setBlob(5, new FileInputStream(profile));
+			try {
+				File lOutFile = new File(".\\" + u.getName() + ".jpg");
+				FileOutputStream lFileOutputStream = new FileOutputStream(lOutFile);
+				lFileOutputStream.write(u.getPhotoAtByte());
+				lFileOutputStream.flush();
+				stmt.setBlob(5, new FileInputStream(lOutFile));
+				lFileOutputStream.close();
+
+				if (lOutFile.exists()) {
+					lOutFile.delete();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			stmt.setInt(6, u.getId());
 
 			return stmt.executeUpdate();
@@ -356,8 +387,7 @@ public class DataBaseDAO { // Data Access Object
 	public int updateProfile(User u) throws FileNotFoundException {
 		// 마이프로필 수정누르고 확인 눌렀을 때 업데이트시키기
 		String query = "UPDATE user SET pw = ?, name = ?, myMessage = ?, phone = ? where id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, u.getPassword());
 			stmt.setString(2, u.getName());
 			stmt.setString(3, u.getMyMessage());
@@ -374,8 +404,7 @@ public class DataBaseDAO { // Data Access Object
 	public User getMyProfile(User user) {
 		User repaintMyProfileUser = new User();
 		String query = "SELECT * FROM user WHERE id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query)) {
+		try (PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, user.getId());
 
 			ResultSet rs = stmt.executeQuery();
@@ -402,8 +431,7 @@ public class DataBaseDAO { // Data Access Object
 	public User repaintMyProfile(User user) {
 		User repaintMyProfileUser = new User();
 		String query = "SELECT * FROM user WHERE id = ?";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query)) {
+		try (PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, user.getId());
 
 			ResultSet rs = stmt.executeQuery();
@@ -428,9 +456,8 @@ public class DataBaseDAO { // Data Access Object
 
 	public void updateLog(ChatMessage cm) {
 
-		String query = "update chat set chatLog = concat(chatlog, ?)  where subjectCode = ? and chatDate = ? ;";
-		try (Connection conn = ConnectionProvider.getConnection();
-				PreparedStatement stmt = conn.prepareStatement(query);) {
+		String query = "update chat set chatLog = concat(chatlog, ?)  where subjectCode = ? and chatDate = ? and isrunning = 1";
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 
 			LocalDateTime cmtime = cm.getTime();
 			String time = cmtime.format(DateTimeFormatter.ofPattern("HH:mm"));

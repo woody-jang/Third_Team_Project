@@ -58,7 +58,7 @@ public class ChageChatHostDialog extends JDialog {
 							Client.service.changeHost(user, subjectCode);
 							
 							// 리프레쉬 (호스트 받은사람이 호스트메뉴 사용,준사람 자격박탈)
-							MainChatDialog.screenMenu3.setEnabled(false);
+//							MainChatDialog.screenMenu3.setEnabled(false);
 							dispose();
 						}
 					}

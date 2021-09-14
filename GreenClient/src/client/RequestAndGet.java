@@ -38,9 +38,7 @@ public class RequestAndGet {
 			} else if (u.getProtocol().equals(GreenProtocol.JOIN_FAIL)) {
 				JOptionPane.showMessageDialog(null, "회원가입실패");
 			} else if (u.getProtocol().equals(GreenProtocol.JOIN_TEACHER_OK)) {
-				int teacherId = u.getId();
-				String teacherPw = u.getPassword();
-				JOptionPane.showMessageDialog(null, u.getName() + " 선생님의 아이디는 " + teacherId + ", 비밀번호는 " + teacherPw + " 입니다.");
+				service.joinTeacherOk(u);
 			} else if (u.getProtocol().equals(GreenProtocol.JOIN_TEACHER_NO)) {
 				JOptionPane.showMessageDialog(null, "선생님 회원가입 실패");
 			} else if (u.getProtocol().equals(GreenProtocol.FIND_ID_OK)) {
@@ -64,16 +62,28 @@ public class RequestAndGet {
 		} else if (o instanceof ChatMessage) {
 			ChatMessage cm = (ChatMessage) o;
 			if (cm.getProtocol().equals(GreenProtocol.INPUT_PICTURE)) {
-				service.inputpicture(Client.mf, cm);
+				if (Client.user.isTeacher()) {
+					service.inputpicture(Client.mf.mcdMap.get(cm.getSubject()), cm);
+				} else {
+					service.inputpicture(Client.mf.getMcd(), cm);
+				}
 			} else if (cm.getProtocol().equals(GreenProtocol.INPUT_FILE)) {
-				service.inputFile(Client.mf, cm);
+				if (Client.user.isTeacher()) {
+					service.inputFile(Client.mf.mcdMap.get(cm.getSubject()), cm);
+				} else {
+					service.inputFile(Client.mf.getMcd(), cm);
+				}
 			} else if (cm.getProtocol().equals(GreenProtocol.Emoticon)) {
-				service.arriveEmoticon(Client.mf, cm);
+				if (Client.user.isTeacher()) {
+					service.arriveEmoticon(Client.mf.mcdMap.get(cm.getSubject()), cm);
+				} else {
+					service.arriveEmoticon(Client.mf.getMcd(), cm);
+				}
 			} else {
 				if (Client.user.isTeacher()) {
 					service.ArriveMessage(Client.mf.mcdMap.get(cm.getSubject()), cm);
 				} else {
-					service.ArriveMessage(Client.mf, cm);
+					service.ArriveMessage(Client.mf.getMcd(), cm);
 				}
 			}
 			// ---------------------------------------------------------------------

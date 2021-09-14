@@ -35,7 +35,7 @@ public class Client {
 
 	public static void main(String[] args) {
 
-		try (Socket socket = new Socket("192.168.191.155", GreenProtocol.PORT);) {
+		try (Socket socket = new Socket("192.168.0.106", GreenProtocol.PORT);) {
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
 			service = new Service(oos);
@@ -104,7 +104,7 @@ public class Client {
 		case 30:
 			return "C언어";
 		default:
-			return "";
+			return "선생님";
 		}
 	}
 

@@ -66,7 +66,7 @@ public class RequestRead {
 
 			// 민석
 			else if (u.getProtocol().equals(GreenProtocol.CHANGE_PROFILE_WITH_PHOTO)) {
-				service.changeUserInforWithPhoto(u, ois);
+				service.changeUserInforWithPhoto(u);
 			}
 			// 사진 변경 없이 프로필 체인지
 			else if (u.getProtocol().equals(GreenProtocol.CHANGE_PROFILE)) {

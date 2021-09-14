@@ -31,7 +31,7 @@ public class MainChatDialog extends JDialog {
 	private Boolean isTeacher;
 	private List<String> memberList;
 	private ObjectOutputStream oos;
-	public static JMenu screenMenu3;
+	public JMenu screenMenu3;
 	private JComboBox<String> idcombo;
 	private int subjectCode;
 	public ShowUserListDialog suld;
@@ -176,8 +176,8 @@ public class MainChatDialog extends JDialog {
 		mb.add(screenMenu3);
 		mb.add(screenMenu4);
 
-		ImageIcon icon = new ImageIcon("./버튼이모티콘.png");
-		JLabel imobtn = new JLabel(icon);
+		ImageIcon iconimo = new ImageIcon("emoticonBtn.png");
+		JLabel imobtn = new JLabel(iconimo);
 		imobtn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {

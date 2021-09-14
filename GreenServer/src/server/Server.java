@@ -21,11 +21,21 @@ public class Server {
 	private static List<ObjectOutputStream> oosList = new ArrayList<>(); // 채팅방 리스트
 	private static List<User> currentUserList = new ArrayList<>(); // 현재 접속하고 있는 사람들
 	private static Object UserLock = new Object();
+	private static Object DAOLock = new Object();
+	private static DataBaseDAO dao;
+	private static int count = 1;
+
+	public static DataBaseDAO getDao() {
+		synchronized (DAOLock) {
+			return dao;
+		}
+	}
 
 	public static void main(String[] args) {
 		try (ServerSocket server = new ServerSocket(GreenProtocol.PORT)) {
+			dao = new DataBaseDAO();
 			while (true) {
-				System.out.println("기다리는중");
+				System.out.println((count++) + ". 기다리는중");
 				Socket client = server.accept();
 				ObjectOutputStream oos = new ObjectOutputStream(client.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
@@ -55,6 +65,8 @@ public class Server {
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			dao.closeConn();
 		}
 	}
 

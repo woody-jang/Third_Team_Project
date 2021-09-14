@@ -6,19 +6,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.ParseException;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 
 import client.Client;
-import client.Service;
 import shared.GreenProtocol;
 import shared.User;
 
@@ -113,11 +104,17 @@ public class AddTeacher extends JDialog {
 		});
 		
 		pnlBtn.add(btnJoin);
-
+		
 		JPanel pnlBtn2 = new JPanel();
-		JButton btnReset = new JButton("Reset");
-
+		JButton btnReset = new JButton("취소");
+		btnReset.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
 		pnlBtn2.add(btnReset);
+		
 		pnlAll.add(pnlTitle);
 		pnlAll.add(pnlName);
 		pnlAll.add(pnlBirth);

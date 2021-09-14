@@ -1,6 +1,9 @@
 package server;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -8,21 +11,19 @@ import shared.*;
 
 public class Service {
 
-	private DataBaseDAO dao = new DataBaseDAO();
 	private ObjectOutputStream oos;
 
 	public Service(ObjectOutputStream oos) {
 		this.oos = oos;
-
 	}
 
 	// -----------------------------------------------------------------------------------------
 	// 로그인 - 서윤
 	public void confirmLogin(User user) {
-		User u = dao.searchLogin(user);
+		User u = Server.getDao().searchLogin(user);
 		// 어드민 로그인 시 선생님 목록도 가져오게 하기
 		if (u.getProtocol().equals(GreenProtocol.LOGIN_ADMIN)) {
-			List<User> teacherList = dao.searchTeacher();
+			List<User> teacherList = Server.getDao().searchTeacher();
 			try {
 				oos.reset();
 				oos.writeObject(u);
@@ -74,7 +75,7 @@ public class Service {
 	private User joinResult(User user) {
 		// 가입결과
 		int returnId = 0;
-		returnId = dao.saveUser(user.getPassword(), user.getName(), user.getBirth(), user.getPhone(),
+		returnId = Server.getDao().saveUser(user.getPassword(), user.getName(), user.getBirth(), user.getPhone(),
 				user.getSubject());
 		User u = new User();
 		if (returnId != 0) {
@@ -99,8 +100,8 @@ public class Service {
 	}
 
 	public void executeDeleteTeacher(User user) {
-		dao.deleteTeacher(user);
-		List<User> list = dao.searchTeacher();
+		Server.getDao().deleteTeacher(user);
+		List<User> list = Server.getDao().searchTeacher();
 		try {
 			oos.reset();
 			oos.writeObject(GreenProtocol.DELETE_TEACHER_OK);
@@ -112,7 +113,7 @@ public class Service {
 	}
 
 	public void repaintTeacherList() {
-		List<User> list = dao.searchTeacher();
+		List<User> list = Server.getDao().searchTeacher();
 		try {
 			oos.reset();
 			oos.writeObject(GreenProtocol.REPAINT_TEACHER_LIST_OK);
@@ -148,7 +149,7 @@ public class Service {
 	public User joinTeacherResult(User user) {
 		user.setSubject(0);
 		int teacherId = 0;
-		teacherId = dao.saveTeacher(user);
+		teacherId = Server.getDao().saveTeacher(user);
 		if (teacherId != 0) {
 			user.setId(teacherId);
 			user.setProtocol(GreenProtocol.JOIN_TEACHER_OK);
@@ -160,7 +161,7 @@ public class Service {
 	}
 
 	public User findIdResult(User user) { // 아이디 찾기 결과
-		int wantId = dao.searchId(user.getName(), user.getBirth(), user.getPhone());
+		int wantId = Server.getDao().searchId(user.getName(), user.getBirth(), user.getPhone());
 		User wantIdU = new User();
 		if (wantId != 0) {
 			wantIdU.setProtocol(GreenProtocol.FIND_ID_OK);
@@ -172,7 +173,7 @@ public class Service {
 	}
 
 	public User findPwResult(User user) {
-		String wantPw = dao.searchPw(user.getName(), user.getBirth(), user.getPhone(), user.getId());
+		String wantPw = Server.getDao().searchPw(user.getName(), user.getBirth(), user.getPhone(), user.getId());
 		User wantPwu = new User();
 		if (wantPw.equals("1")) {
 			wantPwu.setProtocol(GreenProtocol.FIND_PW_NO);
@@ -198,7 +199,7 @@ public class Service {
 				e.printStackTrace();
 			}
 			cr.setMap(new HashMap<User, ObjectOutputStream>());
-			dao.creatRoom(cr);
+			Server.getDao().creatRoom(cr);
 		} else {
 			try {
 				oos.reset();
@@ -230,13 +231,25 @@ public class Service {
 		// 채팅리스트 보내주기 - 새로고침 (로그인한 모든사람들에게)
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		List<ChatRoom> list = Server.getChatRoomList();
+		ChatList chatList = null;
+		chatList = new ChatList(map, GreenProtocol.REFRESH_CHATLIST);
+		if (list.size() == 0) {
+			try {
+				oos.reset();
+				oos.writeObject(chatList);
+				oos.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
 		for (int i = 0; i < list.size(); i++) {
 			map.put(list.get(i).getTitle(), list.get(i).getSubjectCode());
 		}
 		try {
 			for (ObjectOutputStream oos : Server.getOosList()) {
 				oos.reset();
-				oos.writeObject(new ChatList(map, GreenProtocol.REFRESH_CHATLIST));
+				oos.writeObject(chatList);
 				oos.flush();
 			}
 		} catch (IOException e) {
@@ -261,7 +274,7 @@ public class Service {
 						}
 					}
 					list.remove(cr); // 서버의 채팅방 리스트에서 방 지우고
-					int re = dao.removeChatRoom(cr.getSubjectCode()); // db수정함
+					int re = Server.getDao().removeChatRoom(cr.getSubjectCode()); // db수정함
 				} else {
 					serverAnnounce(cr.getSubjectCode(), u.getName() + "님이 퇴장하였습니다."); // 호스트가 아니면 퇴장메세지만 전송
 				}
@@ -442,7 +455,7 @@ public class Service {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		dao.ChangeTitle(newTitle, subjectCode);
+		Server.getDao().ChangeTitle(newTitle, subjectCode);
 		List<ChatRoom> chatroomlist = Server.getChatRoomList();
 		ChatRoom cr = null;
 		for (ChatRoom chatRoom : chatroomlist) {
@@ -452,17 +465,14 @@ public class Service {
 				break;
 			}
 		}
-		for (User user2 : cr.getMap().keySet()) {
-			try {
-				ObjectOutputStream oos = cr.getMap().get(user2);
-				oos.reset();
-				oos.writeObject(GreenProtocol.CHANGE_TITLE_RESULT);
-				oos.writeObject(newTitle);
-				oos.writeObject(cr.getSubjectCode());
-				oos.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			oos.reset();
+			oos.writeObject(GreenProtocol.CHANGE_TITLE_RESULT);
+			oos.writeObject(newTitle);
+			oos.writeObject(cr.getSubjectCode());
+			oos.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		serverAnnounce(subjectCode, "방제 '" + newTitle + "'로 변경");
 	}
@@ -557,6 +567,8 @@ public class Service {
 					break;
 				}
 			}
+			
+			allUserUpdateUserList(subjectCode);
 		} catch (ClassNotFoundException | IOException e) {
 			e.printStackTrace();
 		}
@@ -573,7 +585,7 @@ public class Service {
 			for (ChatRoom chatroom : Server.getChatRoomList()) {
 				if (chatroom.getSubjectCode() == subjectCode) {
 					cr = chatroom;
-					dao.removeChatRoom(subjectCode); // isrunning = 0
+					Server.getDao().removeChatRoom(subjectCode); // isrunning = 0
 					break;
 				}
 			}
@@ -628,7 +640,8 @@ public class Service {
 		try {
 			String selectedDate = (String) ois.readObject();
 			int subjectCode = (int) ois.readObject();
-			chatRoomList = dao.getChatLogList(selectedDate, subjectCode);
+			System.out.println(subjectCode);
+			chatRoomList = Server.getDao().getChatLogList(selectedDate, subjectCode);
 
 			oos.reset();
 			oos.writeObject(GreenProtocol.SELECT_CALENDAR_RESULT);
@@ -650,13 +663,11 @@ public class Service {
 		// 클릭한 사람의 사진, 이름, 상메 보내주기
 	}
 
-	public void changeUserInforWithPhoto(User user, ObjectInputStream ois) {
-		File profile = null;
+	public void changeUserInforWithPhoto(User user) {
 		try {
-			profile = (File) ois.readObject();
 			int result = 0;
-			result = dao.updateProfile(user, profile);
-			User repaintMyProfileUser = dao.repaintMyProfile(user);
+			result = Server.getDao().updateProfileWithPhoto(user);
+			User repaintMyProfileUser = Server.getDao().repaintMyProfile(user);
 			Thread.sleep(700);
 			if (result == 1) {
 				oos.reset();
@@ -673,7 +684,7 @@ public class Service {
 				oos.writeObject(repaintMyProfileUser);
 				oos.flush();
 			}
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -683,8 +694,8 @@ public class Service {
 	public void changeUserInforNoPhoto(User user) {
 		int result;
 		try {
-			result = dao.updateProfile(user);
-			User repaintMyProfileUser = dao.repaintMyProfile(user);
+			result = Server.getDao().updateProfile(user);
+			User repaintMyProfileUser = Server.getDao().repaintMyProfile(user);
 			Thread.sleep(700);
 			if (result == 1) {
 				oos.reset();
@@ -711,7 +722,7 @@ public class Service {
 	}
 
 	public void getMyProfile(User user) {
-		User repaintMyProfileUser = dao.getMyProfile(user);
+		User repaintMyProfileUser = Server.getDao().getMyProfile(user);
 		try {
 			oos.reset();
 			oos.writeObject(repaintMyProfileUser);
@@ -799,7 +810,7 @@ public class Service {
 	}
 
 	public void updatechatlog(ChatMessage cm) {
-		dao.updateLog(cm);
+		Server.getDao().updateLog(cm);
 
 	}
 

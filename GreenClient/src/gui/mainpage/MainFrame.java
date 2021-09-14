@@ -36,7 +36,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		JPanel btnspnl = new JPanel();
 		btn1 = new JButton("대화");
-		btn2 = new JButton("달력");
+		btn2 = new JButton("채팅기록");
 		btn3 = new JButton("마이");
 		btnRepaint = new JButton(" 새로고침 ");
 		btnLogOut = new JButton(" 로그아웃 ");
@@ -56,7 +56,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		calendar = new Calendar();
 		mypage = new Mypage(user);
 		cardpnl.add(mainpnl, "메인");
-		cardpnl.add(calendar, "달력");
+		cardpnl.add(calendar, "채팅기록");
 		cardpnl.add(mypage, "마이페이지");
 
 		JPanel toppnl = new JPanel();
@@ -110,7 +110,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		if (e.getSource() == btn1) {
 			card.show(cardpnl, "메인");
 		} else if (e.getSource() == btn2) {
-			card.show(cardpnl, "달력");
+			card.show(cardpnl, "채팅기록");
 		} else if (e.getSource() == btn3) {
 			card.show(cardpnl, "마이페이지");
 		} else if (e.getSource() == btnRepaint) { // 새로 고침

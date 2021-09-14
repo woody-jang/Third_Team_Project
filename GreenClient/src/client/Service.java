@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -152,6 +153,12 @@ public class Service {
 
 	public void btnRefresh(ChatList cl) {
 		// 새로고침 : 채팅방 만들어진 목록(버튼) 새로고침
+		if (cl.getMap().size() == 0) {
+			return;
+		}
+		if (Client.mf == null) {
+			return;
+		}
 		JPanel mp = Client.mf.getMidpnl();
 		mp.removeAll();
 		Map<String, Integer> map = cl.getMap();
@@ -258,12 +265,12 @@ public class Service {
 	}
 
 	// 영균
-	public void inputFile(MainFrame mf, ChatMessage cm) {
-		mf.passMCDmyFile(cm);
+	public void inputFile(MainChatDialog mainChatDialog, ChatMessage cm) {
+		mainChatDialog.myFile(cm);
 	}// 파일위해 필요함.
 
-	public void inputpicture(MainFrame mf, ChatMessage cm) {
-		mf.passMCDmyPicture(cm);
+	public void inputpicture(MainChatDialog mainChatDialog, ChatMessage cm) {
+		mainChatDialog.myPicture(cm);
 	}// 사진위해 필요함.
 
 	public void getOutUser(User user) {// 내용물 추가함.
@@ -337,7 +344,7 @@ public class Service {
 			oos.writeObject(GreenProtocol.CHANGE_HOST);
 			oos.writeObject(subjectCode);
 			oos.flush();
-			
+
 			oos.reset();
 			oos.writeObject(user);
 			oos.flush();
@@ -494,23 +501,28 @@ public class Service {
 	}
 
 	public void changeUserInformation(User u, File choosefile) {
-		u.setProtocol(GreenProtocol.CHANGE_PROFILE_WITH_PHOTO);
-		u.setName(Client.mf.getMypage().getTfName().getText());
-		u.setPassword(Client.mf.getMypage().getTfPw().getText());
-		u.setPhone(Client.mf.getMypage().getTfPhone().getText());
-		u.setMyMessage(Client.mf.getMypage().getTfMyMessage().getText());
-		u.setPhoto(choosefile.getPath().getBytes());
-		try {
-			oos.reset();
-			oos.writeObject(u);
-			oos.writeObject(choosefile);
-			oos.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	      u.setProtocol(GreenProtocol.CHANGE_PROFILE_WITH_PHOTO);
+	      u.setName(Client.mf.getMypage().getTfName().getText());
+	      u.setPassword(Client.mf.getMypage().getTfPw().getText());
+	      u.setPhone(Client.mf.getMypage().getTfPhone().getText());
+	      u.setMyMessage(Client.mf.getMypage().getTfMyMessage().getText());
+	      byte[] imageBytes = null;
+	      try {
+	         imageBytes = Files.readAllBytes(choosefile.toPath());
+	         u.setPhoto(imageBytes);
+	      } catch (IOException e1) {
+	         e1.printStackTrace();
+	      }
+	      try {
+	         oos.reset();
+	         oos.writeObject(u);
+	         oos.flush();
+	      } catch (IOException e) {
+	         e.printStackTrace();
+	      }
+	   }
 
-	public void arriveEmoticon(MainFrame mf, ChatMessage cm) {
+	public void arriveEmoticon(MainChatDialog mainChatDialog, ChatMessage cm) {
 		int subjectCode = cm.getSubject();
 		if (Client.user.isTeacher()) {
 			if (cm.getSendUser().equals(Client.mf.getUser().getName())) {
@@ -520,9 +532,9 @@ public class Service {
 			}
 		} else {
 			if (cm.getSendUser().equals(Client.mf.getUser().getName())) {
-				mf.getMcd().myEmoticon(cm);
+				mainChatDialog.myEmoticon(cm);
 			} else {
-				mf.getMcd().otherEmoticon(cm);
+				mainChatDialog.otherEmoticon(cm);
 			}
 		}
 	}
@@ -588,5 +600,14 @@ public class Service {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void joinTeacherOk(User u) {
+		String name = u.getName();
+		int teacherId = u.getId();
+		String teacherPw = u.getPassword();
+		Client.af.name = name;
+		Client.af.id = teacherId;
+		Client.af.pw = teacherPw;
 	}
 }

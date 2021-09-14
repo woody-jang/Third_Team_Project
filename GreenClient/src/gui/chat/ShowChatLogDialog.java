@@ -21,15 +21,20 @@ public class ShowChatLogDialog extends JDialog {
 		JScrollPane scrl = new JScrollPane(ta);
 		String[] chatLogArray = chatLog.split("[.]");
 		StringBuilder sb = new StringBuilder();
-		for (String str1 : chatLogArray) {
-			String[] strs = str1.split(",");
-			sb.append(strs[0] + " : ");
-			sb.append(strs[1] + ",   ");
-			sb.append(strs[2] + "\n");
+
+		if (chatLog.equals("")) {
+			sb.append("");
+		} else {
+			for (String str1 : chatLogArray) {
+				String[] strs = str1.split(",");
+				sb.append(strs[0] + " : ");
+				sb.append(strs[1] + ",   ");
+				sb.append(strs[2] + "\n");
+			}
 		}
 
 		ta.setText(sb.toString());
-//		ta.setEditable(false);
+		ta.setEditable(false);
 		mainPnl.add(scrl);
 
 		JButton saveBtn = new JButton("저장");
@@ -75,11 +80,11 @@ public class ShowChatLogDialog extends JDialog {
 				}
 			}
 		});
-		
+
 		mainPnl.add(saveBtn);
-		
+
 		add(mainPnl);
-		
+
 		setModal(true);
 		setSize(500, 300);
 		setLocation(600, 450);

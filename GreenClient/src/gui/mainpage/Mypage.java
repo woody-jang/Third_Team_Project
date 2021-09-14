@@ -219,7 +219,6 @@ public class Mypage extends JPanel {
 				if (choosefile == null) {
 					Client.service.changeUserInformation(user);
 				} else {
-					// 9/3 내맘대로
 					Client.service.changeUserInformation(user, choosefile);
 				}
 				try {
